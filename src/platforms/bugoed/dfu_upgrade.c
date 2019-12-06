@@ -29,8 +29,6 @@
 
 uint32_t app_address = 0x08000000;
 extern uint32_t _stack;
-static uint32_t rev;
-
 void dfu_detach(void)
 {
 	platform_request_boot();
@@ -39,7 +37,6 @@ void dfu_detach(void)
 
 int main(void)
 {
-	rev = detect_rev();
 	rcc_clock_setup_in_hse_8mhz_out_72mhz();
 	systick_set_clocksource(STK_CSR_CLKSOURCE_AHB_DIV8);
 	systick_set_reload(900000);
@@ -60,9 +57,5 @@ void dfu_event(void)
 
 void sys_tick_handler(void)
 {
-	if (rev == 0) {
-		gpio_toggle(GPIOA, GPIO8);
-	} else {
-		gpio_toggle(GPIOC, GPIO13);
-	}
+	gpio_toggle(LED_PORT, LED_IDLE_RUN);
 }

@@ -46,32 +46,14 @@ int main(void)
 {
 	/* Check the force bootloader pin*/
 	bool normal_boot = 0;
-	rev = detect_rev();
-	switch (rev) {
-	case 0:
-		/* For Stlink on  STM8S check that CN7 PIN 4 RESET# is
-		 * forced to GND, Jumper CN7 PIN3/4 is plugged).
-		 * Switch PB5 high. Read PB6 low means jumper plugged.
-		 */
-		gpio_set_mode(GPIOB, GPIO_MODE_INPUT,
-					  GPIO_CNF_INPUT_PULL_UPDOWN, GPIO6);
-		gpio_set(GPIOB, GPIO6);
-		gpio_set_mode(GPIOB, GPIO_MODE_OUTPUT_2_MHZ,
-					  GPIO_CNF_OUTPUT_PUSHPULL, GPIO5);
-		while (gpio_get(GPIOB, GPIO5))
-			gpio_clear(GPIOB, GPIO5);
-		while (!gpio_get(GPIOB, GPIO5))
-			gpio_set(GPIOB, GPIO5);
-		normal_boot = (gpio_get(GPIOB, GPIO6));
-		break;
-	case 1:
-		/* Boot0/1 pins have 100k between Jumper and MCU
-		 * and are jumperd to low by default.
-		 * If we read PB2 high, force bootloader entry.*/
-		gpio_set_mode(GPIOB, GPIO_MODE_INPUT,
-					  GPIO_CNF_INPUT_FLOAT, GPIO2);
-		normal_boot = !(gpio_get(GPIOB, GPIO2));
-	}
+
+	/* Boot0/1 pins have 100k between Jumper and MCU
+			 * and are jumperd to low by default.
+			 * If we read PB2 high, force bootloader entry.*/
+	gpio_set_mode(GPIOB, GPIO_MODE_INPUT,
+				  GPIO_CNF_INPUT_FLOAT, GPIO2);
+	normal_boot = !(gpio_get(GPIOB, GPIO2));
+
 	if(((GPIOA_CRL & 0x40) == 0x40) && normal_boot)
 		dfu_jump_app_if_valid();
 
@@ -95,12 +77,5 @@ void dfu_event(void)
 
 void sys_tick_handler(void)
 {
-	switch (rev) {
-	case 0:
-		gpio_toggle(GPIOA, GPIO8);
-		break;
-	case 1:
-		gpio_toggle(GPIOC, GPIO13);
-		break;
-	}
+	gpio_toggle(LED_PORT, LED_IDLE_RUN);
 }

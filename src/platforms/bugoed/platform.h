@@ -35,10 +35,10 @@
 # define USBUART_DEBUG
 #endif
 
-#define BOARD_IDENT			"Black Magic Probe (SWLINK), (Firmware " FIRMWARE_VERSION ")"
-#define BOARD_IDENT_DFU		"Black Magic (Upgrade), SWLINK, (Firmware " FIRMWARE_VERSION ")"
-#define BOARD_IDENT_UPD		"Black Magic (DFU Upgrade), SWLINK, (Firmware " FIRMWARE_VERSION ")"
-#define DFU_IDENT			"Black Magic Firmware Upgrade (SWLINK)"
+#define BOARD_IDENT			"Black Magic Probe (Bugoed), (Firmware " FIRMWARE_VERSION ")"
+#define BOARD_IDENT_DFU		"Black Magic (Upgrade), Bugoed, (Firmware " FIRMWARE_VERSION ")"
+#define BOARD_IDENT_UPD		"Black Magic (DFU Upgrade), Bugoed, (Firmware " FIRMWARE_VERSION ")"
+#define DFU_IDENT			"Black Magic Firmware Upgrade (Bugoed)"
 #define UPD_IFACE_STRING	"@Internal Flash   /0x08000000/8*001Kg"
 
 /* Hardware definitions... */
@@ -146,13 +146,11 @@ int usbuart_debug_write(const char *buf, size_t len);
 #define SWO_DMA_ISR(x)			dma1_channel6_isr(x)
 
 #define LED_PORT GPIOC
-#define LED_IDLE_RUN GPIO15
+#define LED_IDLE_RUN GPIO13
 #define SET_RUN_STATE(state)
 #define SET_ERROR_STATE(state)
 extern void set_idle_state(int state);
 #define SET_IDLE_STATE(state) set_idle_state(state)
-
-extern uint8_t detect_rev(void);
 
 /* Use newlib provided integer only stdio functions */
 #define sscanf siscanf
