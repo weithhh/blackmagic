@@ -20,7 +20,7 @@
 
 #include "general.h"
 
-#include <libopencm3/stm32/f1/rcc.h>
+#include <libopencm3/stm32/rcc.h>
 #include <libopencm3/cm3/scb.h>
 #include <libopencm3/cm3/scs.h>
 #include <libopencm3/cm3/nvic.h>
@@ -29,6 +29,24 @@
 int platform_hwversion(void)
 {
 	return 0;
+}
+
+void host_usart_init(void) {
+	rcc_periph_clock_enable(HOST_USART_RCC);
+
+	gpio_set_mode(HOST_USART_TX_PORT, GPIO_MODE_OUTPUT_50_MHZ,
+			      GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, HOST_USART_TX_PIN);
+	gpio_set_mode(HOST_USART_RX_PORT, GPIO_MODE_INPUT,
+			  GPIO_CNF_INPUT_FLOAT, HOST_USART_RX_PIN);
+
+	usart_set_baudrate(HOST_USART, 115200);
+	usart_set_databits(HOST_USART, 8);
+	usart_set_stopbits(HOST_USART, USART_STOPBITS_1);
+	usart_set_parity(HOST_USART, USART_PARITY_NONE);
+	usart_set_flow_control(HOST_USART, USART_FLOWCONTROL_NONE);
+	usart_set_mode(HOST_USART, USART_MODE_TX_RX);
+
+	usart_enable(HOST_USART);
 }
 
 void platform_init(void)
@@ -83,6 +101,7 @@ void platform_init(void)
 	SCB_VTOR = (uint32_t)&vector_table;
 
 	platform_timing_init();
+	host_usart_init();
 }
 
 void platform_srst_set_val(bool assert)
@@ -117,3 +136,5 @@ void set_idle_state(int state)
 {
 	gpio_set_val(LED_PORT, LED_IDLE_RUN, (!state));
 }
+
+

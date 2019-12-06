@@ -58,6 +58,13 @@
 #define SWDIO_PIN	TMS_PIN
 #define SWCLK_PIN	TCK_PIN
 
+#define HOST_USART USART3
+#define HOST_USART_RCC RCC_USART3
+#define HOST_USART_TX_PORT GPIOB
+#define HOST_USART_TX_PIN GPIO10
+#define HOST_USART_RX_PORT GPIOB
+#define HOST_USART_RX_PIN GPIO11
+
 /* Use PC14 for a "dummy" uart led. So we can observere at least with scope*/
 #define LED_PORT_UART	GPIOC
 #define LED_UART	GPIO14
