@@ -25,6 +25,8 @@
 #ifndef __PLATFORM_H
 #define __PLATFORM_H
 
+#include <libopencm3/stm32/usart.h>
+
 #include "gpio.h"
 #include "timing.h"
 #include "timing_stm32.h"
@@ -42,16 +44,16 @@
 #define UPD_IFACE_STRING	"@Internal Flash   /0x08000000/8*001Kg"
 
 /* Hardware definitions... */
-#define TMS_PORT	GPIOA
+#define TMS_PORT	GPIOB
 #define TCK_PORT	GPIOA
 #define TDI_PORT	GPIOA
-#define TDO_PORT	GPIOB
-#define JRST_PORT	GPIOB
-#define TMS_PIN		GPIO13
-#define TCK_PIN		GPIO14
-#define TDI_PIN		GPIO15
-#define TDO_PIN		GPIO3
-#define JRST_PIN	GPIO4
+#define TDO_PORT	GPIOA
+#define JRST_PORT	GPIOA
+#define TMS_PIN		GPIO14
+#define TCK_PIN		GPIO5
+#define TDI_PIN		GPIO6
+#define TDO_PIN		GPIO7
+#define JRST_PIN	GPIO8
 
 #define SWDIO_PORT 	TMS_PORT
 #define SWCLK_PORT 	TCK_PORT

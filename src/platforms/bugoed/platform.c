@@ -34,24 +34,28 @@ int platform_hwversion(void)
 void host_usart_init(void) {
 	rcc_periph_clock_enable(HOST_USART_RCC);
 
+	nvic_enable_irq(NVIC_USART3_IRQ);
+
 	gpio_set_mode(HOST_USART_TX_PORT, GPIO_MODE_OUTPUT_50_MHZ,
 			      GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, HOST_USART_TX_PIN);
 	gpio_set_mode(HOST_USART_RX_PORT, GPIO_MODE_INPUT,
-			  GPIO_CNF_INPUT_FLOAT, HOST_USART_RX_PIN);
+			GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, HOST_USART_RX_PIN);
 
-	usart_set_baudrate(HOST_USART, 115200);
+	usart_set_baudrate(HOST_USART, 9600);
 	usart_set_databits(HOST_USART, 8);
 	usart_set_stopbits(HOST_USART, USART_STOPBITS_1);
 	usart_set_parity(HOST_USART, USART_PARITY_NONE);
 	usart_set_flow_control(HOST_USART, USART_FLOWCONTROL_NONE);
 	usart_set_mode(HOST_USART, USART_MODE_TX_RX);
 
+	usart_enable_rx_interrupt(HOST_USART);
 	usart_enable(HOST_USART);
 }
 
 void platform_init(void)
 {
-	uint32_t data;
+//	uint32_t data;
+
 	SCS_DEMCR |= SCS_DEMCR_VC_MON_EN;
 #ifdef ENABLE_DEBUG
 	void initialise_monitor_handles(void);
@@ -63,11 +67,7 @@ void platform_init(void)
 	rcc_periph_clock_enable(RCC_AFIO);
 	rcc_periph_clock_enable(RCC_CRC);
 
-	/* Unmap JTAG Pins so we can reuse as GPIO */
-	data = AFIO_MAPR;
-	data &= ~AFIO_MAPR_SWJ_MASK;
-	data |= AFIO_MAPR_SWJ_CFG_JTAG_OFF_SW_OFF;
-	AFIO_MAPR = data;
+
 	/* Setup JTAG GPIO ports */
 	gpio_set_mode(TMS_PORT, GPIO_MODE_OUTPUT_50_MHZ,
 			GPIO_CNF_INPUT_FLOAT, TMS_PIN);
@@ -75,15 +75,8 @@ void platform_init(void)
 			GPIO_CNF_OUTPUT_PUSHPULL, TCK_PIN);
 	gpio_set_mode(TDI_PORT, GPIO_MODE_OUTPUT_50_MHZ,
 			GPIO_CNF_OUTPUT_PUSHPULL, TDI_PIN);
-
 	gpio_set_mode(TDO_PORT, GPIO_MODE_INPUT,
 			GPIO_CNF_INPUT_FLOAT, TDO_PIN);
-
-	/* Enable MCO Out on PA8*/
-	RCC_CFGR &= ~(0xf << 24);
-	RCC_CFGR |= (RCC_CFGR_MCO_HSE << 24);
-	gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_50_MHZ,
-				  GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO8);
 
 	platform_srst_set_val(false);
 
@@ -91,10 +84,10 @@ void platform_init(void)
 	 * TIM2_CH1_ETR -> PA15 (TDI, set as output above)
 	 * TIM2_CH2     -> PB3  (TDO)
 	 */
-	data = AFIO_MAPR;
-	data &= ~AFIO_MAPR_TIM2_REMAP_FULL_REMAP;
-	data |=  AFIO_MAPR_TIM2_REMAP_PARTIAL_REMAP1;
-	AFIO_MAPR = data;
+//	data = AFIO_MAPR;
+//	data &= ~AFIO_MAPR_TIM2_REMAP_FULL_REMAP;
+//	data |=  AFIO_MAPR_TIM2_REMAP_PARTIAL_REMAP1;
+//	AFIO_MAPR = data;
 
 	/* Relocate interrupt vector table here */
 	extern int vector_table;

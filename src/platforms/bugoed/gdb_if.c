@@ -21,66 +21,51 @@
 /* This file implements a transparent channel over which the GDB Remote
  * Serial Debugging protocol is implemented.
  */
+
+
+#include <libopencm3/stm32/usart.h>
+
 #include "general.h"
 #include "cdcacm.h"
 #include "gdb_if.h"
 
-static uint32_t count_out;
-static uint32_t count_in;
-static uint32_t out_ptr;
-static uint8_t buffer_out[CDCACM_PACKET_SIZE];
-static uint8_t buffer_in[CDCACM_PACKET_SIZE];
+//volatile size_t count_tx;
+//static uint8_t buffer_tx[CDCACM_PACKET_SIZE];
+
+volatile size_t count_rx = 0;
+static uint8_t buffer_rx[CDCACM_PACKET_SIZE];
 
 void gdb_if_putchar(unsigned char c, int flush)
 {
-	buffer_in[count_in++] = c;
-	if(flush || (count_in == CDCACM_PACKET_SIZE)) {
-		/* Refuse to send if USB isn't configured, and
-		 * don't bother if nobody's listening */
-		if((cdcacm_get_config() != 1) || !cdcacm_get_dtr()) {
-			count_in = 0;
-			return;
-		}
-		while(usbd_ep_write_packet(usbdev, CDCACM_GDB_ENDPOINT,
-			buffer_in, count_in) <= 0);
+	flush = flush;
+	usart_send_blocking(HOST_USART, c);
 
-		if (flush && (count_in == CDCACM_PACKET_SIZE)) {
-			/* We need to send an empty packet for some hosts
-			 * to accept this as a complete transfer. */
-			/* libopencm3 needs a change for us to confirm when
-			 * that transfer is complete, so we just send a packet
-			 * containing a null byte for now.
-			 */
-			while (usbd_ep_write_packet(usbdev, CDCACM_GDB_ENDPOINT,
-				"\0", 1) <= 0);
-		}
-
-		count_in = 0;
-	}
+//	buffer_tx[count_tx] = c;
+//	count_tx++;
+//
+//	if (flush || (count_tx == CDCACM_PACKET_SIZE)) {
+//		while (count_tx) {
+//			count_tx--;
+//			usart_send_blocking(HOST_USART, buffer_tx[count_tx]);
+//		}
+//	}
 }
 
+static char nonblocking_getchar(void) {
+	usart_disable_rx_interrupt(HOST_USART);
 
-static void gdb_if_update_buf(void)
-{
-	while (cdcacm_get_config() != 1);
+	count_rx--;
+	uint8_t byte = buffer_rx[count_rx];
 
-	count_out = usbd_ep_read_packet(usbdev, CDCACM_GDB_ENDPOINT,
-	                                buffer_out, CDCACM_PACKET_SIZE);
-	out_ptr = 0;
+	usart_enable_rx_interrupt(HOST_USART);
+
+	return byte;
 }
 
 unsigned char gdb_if_getchar(void)
 {
-
-	while (!(out_ptr < count_out)) {
-		/* Detach if port closed */
-		if (!cdcacm_get_dtr())
-			return 0x04;
-
-		gdb_if_update_buf();
-	}
-
-	return buffer_out[out_ptr++];
+	while (!count_rx);
+	return nonblocking_getchar();
 }
 
 unsigned char gdb_if_getchar_to(int timeout)
@@ -88,17 +73,25 @@ unsigned char gdb_if_getchar_to(int timeout)
 	platform_timeout t;
 	platform_timeout_set(&t, timeout);
 
-	if (!(out_ptr < count_out)) do {
-		/* Detach if port closed */
-		if (!cdcacm_get_dtr())
-			return 0x04;
-
-		gdb_if_update_buf();
-	} while (!platform_timeout_is_expired(&t) && !(out_ptr < count_out));
-
-	if(out_ptr < count_out)
-		return gdb_if_getchar();
+	while (!platform_timeout_is_expired(&t)) {
+		if (count_rx) {
+			return nonblocking_getchar();
+		}
+	}
 
 	return -1;
 }
 
+void usart3_isr(void)
+{
+	if (((USART_CR1(HOST_USART) & USART_CR1_RXNEIE) != 0) &&
+		    ((USART_SR(HOST_USART) & USART_SR_RXNE) != 0))
+	{
+		uint16_t byte = usart_recv(HOST_USART);
+
+		if (count_rx < CDCACM_PACKET_SIZE) {
+			buffer_rx[count_rx] = byte;
+			count_rx++;
+		}
+	}
+}
