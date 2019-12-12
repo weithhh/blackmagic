@@ -1,5 +1,5 @@
 /*
- * This file is part of the Black Magic Debug project.
+ * This file is pat of the Black Magic Debug project.
  *
  * Copyright (C) 2011  Black Sphere Technologies Ltd.
  * Written by Gareth McMullin <gareth@blacksphere.co.nz>
@@ -45,12 +45,12 @@
 
 /* Hardware definitions... */
 #define TMS_PORT	GPIOB
-#define TCK_PORT	GPIOA
+#define TCK_PORT	GPIOB
 #define TDI_PORT	GPIOA
 #define TDO_PORT	GPIOA
 #define JRST_PORT	GPIOA
-#define TMS_PIN		GPIO14
-#define TCK_PIN		GPIO5
+#define TMS_PIN		GPIO15
+#define TCK_PIN		GPIO14
 #define TDI_PIN		GPIO6
 #define TDO_PIN		GPIO7
 #define JRST_PIN	GPIO8
@@ -67,13 +67,7 @@
 #define HOST_USART_RX_PORT GPIOB
 #define HOST_USART_RX_PIN GPIO11
 
-/* Use PC14 for a "dummy" uart led. So we can observere at least with scope*/
-#define LED_PORT_UART	GPIOC
-#define LED_UART	GPIO14
-
-#define PLATFORM_HAS_TRACESWO	1
-#define NUM_TRACE_PACKETS		(128)		/* This is an 8K buffer */
-#define TRACESWO_PROTOCOL		2			/* 1 = Manchester, 2 = NRZ / async */
+//#define PLATFORM_HAS_TRACESWO	1
 
 # define SWD_CR   GPIO_CRH(SWDIO_PORT)
 # define SWD_CR_MULT (1 << ((13 - 8) << 2))
@@ -93,43 +87,6 @@
 	cr  |=  (0x1 * SWD_CR_MULT); \
 	SWD_CR = cr; \
 } while(0)
-#define UART_PIN_SETUP() do { \
-	AFIO_MAPR |= AFIO_MAPR_USART1_REMAP; \
-	gpio_set_mode(USBUSART_PORT, GPIO_MODE_OUTPUT_2_MHZ, \
-	              GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, USBUSART_TX_PIN); \
-} while (0)
-
-#define USB_DRIVER      st_usbfs_v1_usb_driver
-#define USB_IRQ         NVIC_USB_LP_CAN_RX0_IRQ
-#define USB_ISR         usb_lp_can_rx0_isr
-/* Interrupt priorities.  Low numbers are high priority.
- * For now USART1 preempts USB which may spin while buffer is drained.
- * TIM2 is used for traceswo capture and must be highest priority.
- */
-#define IRQ_PRI_USB		(2 << 4)
-#define IRQ_PRI_USBUSART	(1 << 4)
-#define IRQ_PRI_USBUSART_TIM	(3 << 4)
-#define IRQ_PRI_USB_VBUS	(14 << 4)
-#define IRQ_PRI_SWO_DMA		(0 << 4)
-
-#define USBUSART USART1
-#define USBUSART_CR1 USART1_CR1
-#define USBUSART_IRQ NVIC_USART1_IRQ
-#define USBUSART_CLK RCC_USART1
-#define USBUSART_PORT GPIOB
-#define USBUSART_TX_PIN GPIO6
-#define USBUSART_ISR usart1_isr
-#define USBUSART_TIM TIM4
-#define USBUSART_TIM_CLK_EN() rcc_periph_clock_enable(RCC_TIM4)
-#define USBUSART_TIM_IRQ NVIC_TIM4_IRQ
-#define USBUSART_TIM_ISR tim4_isr
-
-#define TRACE_TIM TIM2
-#define TRACE_TIM_CLK_EN() rcc_periph_clock_enable(RCC_TIM2)
-#define TRACE_IRQ   NVIC_TIM2_IRQ
-#define TRACE_ISR   tim2_isr
-#define TRACE_IC_IN TIM_IC_IN_TI2
-#define TRACE_TRIG_IN TIM_SMCR_TS_IT1FP2
 
 #ifdef ENABLE_DEBUG
 extern bool debug_bmp;
@@ -139,26 +96,11 @@ int usbuart_debug_write(const char *buf, size_t len);
 # define DEBUG(...)
 #endif
 
-/* On F103, only USART1 is on AHB2 and can reach 4.5 MBaud at 72 MHz.
- * USART1 is already used. sp maximum speed is 2.25 MBaud. */
-#define SWO_UART				USART2
-#define SWO_UART_DR				USART2_DR
-#define SWO_UART_CLK			RCC_USART2
-#define SWO_UART_PORT			GPIOA
-#define SWO_UART_RX_PIN			GPIO3
-
-/* This DMA channel is set by the USART in use */
-#define SWO_DMA_BUS				DMA1
-#define SWO_DMA_CLK				RCC_DMA1
-#define SWO_DMA_CHAN			DMA_CHANNEL6
-#define SWO_DMA_IRQ				NVIC_DMA1_CHANNEL6_IRQ
-#define SWO_DMA_ISR(x)			dma1_channel6_isr(x)
-
 #define LED_PORT GPIOC
 #define LED_IDLE_RUN GPIO13
 #define SET_RUN_STATE(state)
 #define SET_ERROR_STATE(state)
-extern void set_idle_state(int state);
+void set_idle_state(int state);
 #define SET_IDLE_STATE(state) set_idle_state(state)
 
 /* Use newlib provided integer only stdio functions */

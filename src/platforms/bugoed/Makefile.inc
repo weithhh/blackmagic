@@ -20,13 +20,10 @@ endif
 
 VPATH += platforms/stm32
 
-SRC += 	cdcacm.c	\
-	usbuart.c 	\
-	serialno.c	\
-	timing.c	\
+SRC += serialno.c   \
+	timing.c	    \
 	timing_stm32.c	\
-	traceswoasync.c	\
-	platform_common.c \
+	platform_common.c
 
 all:	blackmagic.bin blackmagic_dfu.bin blackmagic_dfu.hex dfu_upgrade.bin dfu_upgrade.hex
 

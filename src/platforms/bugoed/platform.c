@@ -26,6 +26,8 @@
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/stm32/usart.h>
 
+char serial_no[9] = "none";
+
 int platform_hwversion(void)
 {
 	return 0;
@@ -41,7 +43,7 @@ void host_usart_init(void) {
 	gpio_set_mode(HOST_USART_RX_PORT, GPIO_MODE_INPUT,
 			GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, HOST_USART_RX_PIN);
 
-	usart_set_baudrate(HOST_USART, 9600);
+	usart_set_baudrate(HOST_USART, 460800);
 	usart_set_databits(HOST_USART, 8);
 	usart_set_stopbits(HOST_USART, USART_STOPBITS_1);
 	usart_set_parity(HOST_USART, USART_PARITY_NONE);
@@ -54,8 +56,6 @@ void host_usart_init(void) {
 
 void platform_init(void)
 {
-//	uint32_t data;
-
 	SCS_DEMCR |= SCS_DEMCR_VC_MON_EN;
 #ifdef ENABLE_DEBUG
 	void initialise_monitor_handles(void);
@@ -66,7 +66,6 @@ void platform_init(void)
 	/* Enable peripherals */
 	rcc_periph_clock_enable(RCC_AFIO);
 	rcc_periph_clock_enable(RCC_CRC);
-
 
 	/* Setup JTAG GPIO ports */
 	gpio_set_mode(TMS_PORT, GPIO_MODE_OUTPUT_50_MHZ,
@@ -79,15 +78,6 @@ void platform_init(void)
 			GPIO_CNF_INPUT_FLOAT, TDO_PIN);
 
 	platform_srst_set_val(false);
-
-	/* Remap TIM2 TIM2_REMAP[1]
-	 * TIM2_CH1_ETR -> PA15 (TDI, set as output above)
-	 * TIM2_CH2     -> PB3  (TDO)
-	 */
-//	data = AFIO_MAPR;
-//	data &= ~AFIO_MAPR_TIM2_REMAP_FULL_REMAP;
-//	data |=  AFIO_MAPR_TIM2_REMAP_PARTIAL_REMAP1;
-//	AFIO_MAPR = data;
 
 	/* Relocate interrupt vector table here */
 	extern int vector_table;
