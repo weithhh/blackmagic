@@ -67,26 +67,12 @@
 #define HOST_USART_RX_PORT GPIOB
 #define HOST_USART_RX_PIN GPIO11
 
-//#define PLATFORM_HAS_TRACESWO	1
-
-# define SWD_CR   GPIO_CRH(SWDIO_PORT)
-# define SWD_CR_MULT (1 << ((13 - 8) << 2))
-
 #define TMS_SET_MODE() \
-	gpio_set_mode(TMS_PORT, GPIO_MODE_OUTPUT_50_MHZ, \
-	              GPIO_CNF_OUTPUT_PUSHPULL, TMS_PIN);
-#define SWDIO_MODE_FLOAT() 	do { \
-	uint32_t cr = SWD_CR; \
-	cr  &= ~(0xf * SWD_CR_MULT); \
-	cr  |=  (0x4 * SWD_CR_MULT); \
-	SWD_CR = cr; \
-} while(0)
-#define SWDIO_MODE_DRIVE() 	do { \
-	uint32_t cr = SWD_CR; \
-	cr  &= ~(0xf * SWD_CR_MULT); \
-	cr  |=  (0x1 * SWD_CR_MULT); \
-	SWD_CR = cr; \
-} while(0)
+	gpio_set_mode(TMS_PORT, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, TMS_PIN);
+#define SWDIO_MODE_FLOAT() \
+	gpio_set_mode(SWDIO_PORT, GPIO_MODE_INPUT, GPIO_CNF_INPUT_FLOAT, SWDIO_PIN);
+#define SWDIO_MODE_DRIVE() \
+	gpio_set_mode(SWDIO_PORT, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, SWDIO_PIN);
 
 #ifdef ENABLE_DEBUG
 extern bool debug_bmp;
