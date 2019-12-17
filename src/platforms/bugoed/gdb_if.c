@@ -29,26 +29,23 @@
 #include "cdcacm.h"
 #include "gdb_if.h"
 
-//volatile size_t count_tx;
-//static uint8_t buffer_tx[CDCACM_PACKET_SIZE];
+volatile size_t count_tx = 0;
+static uint8_t buffer_tx[CDCACM_PACKET_SIZE];
 
 volatile size_t count_rx = 0;
 static uint8_t buffer_rx[CDCACM_PACKET_SIZE];
 
 void gdb_if_putchar(unsigned char c, int flush)
 {
-	flush = flush;
-	usart_send_blocking(HOST_USART, c);
+	buffer_tx[count_tx] = c;
+	count_tx++;
 
-//	buffer_tx[count_tx] = c;
-//	count_tx++;
-//
-//	if (flush || (count_tx == CDCACM_PACKET_SIZE)) {
-//		while (count_tx) {
-//			count_tx--;
-//			usart_send_blocking(HOST_USART, buffer_tx[count_tx]);
-//		}
-//	}
+	if (flush || (count_tx == sizeof(buffer_tx))) {
+		for (size_t tx_pos = 0; tx_pos < count_tx; tx_pos++) {
+			usart_send_blocking(HOST_USART, buffer_tx[tx_pos]);
+		}
+		count_tx = 0;
+	}
 }
 
 static char nonblocking_getchar(void) {
